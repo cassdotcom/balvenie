@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectRegister>
+  <Project>
+    <Name>CVC</Name>
+    <Author>ACassidy</Author>
+    <CreationDate>20151215</CreationDate>
+    <CreationTime>1524</CreationTime>
+    <Comment>Dummy project</Comment>
+    <Description>Dummy project</Description>
+    <Location>
+    </Location>
+    <PID>CVCO-c5e78091-0880-4b4f-944c-07b39c033f57</PID>
+    <AssetCount>1</AssetCount>
+  </Project>
+  <Project>
+    <Name>Glengyle</Name>
+    <Author>ACassidy</Author>
+    <CreationDate>20160106</CreationDate>
+    <CreationTime>192727</CreationTime>
+    <Comment>Dummy comment</Comment>
+    <Description>Dummy description</Description>
+    <Location>C:\Users\ac00418\Documents\CVC\projects\Glengyle</Location>
+    <PID>GLYL-118ac3b8-9388-4a06-b825-6d8db0492567</PID>
+    <AssetCount>2</AssetCount>
+  </Project>
+</ProjectRegister>
