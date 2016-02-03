@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<Function>
+		<Name>NewDynamicParam</Name>
+		<Location>C:\Users\ac00418\Documents\WindowsPowerShell\FunctionLibrary\FunctionScripts\New-DynamicParam.ps1</Location>
+	</Function>
+	<Function>
+		<Name>CreateAssetID</Name>
+		<Location>C:\Users\ac00418\Documents\WindowsPowerShell\FunctionLibrary\FunctionScripts\Create-AssetID.ps1</Location>
+	</Function>
+	<Function>
+		<Name>CreateAsset</Name>
+		<Location>C:\Users\ac00418\Documents\CVC\scripts\Create-Asset.ps1</Location>
+	</Function>
+	<Function>
+		<Name>CVCConfig</Name>
+		<Location>C:\Users\ac00418\Documents\CVC\scripts\CVC-Config.ps1</Location>
+	</Function>
+	<Document>
+		<Name>ProjectsRoot</Name>
+		<Location>C:\Users\ac00418\Documents\CVC\projects</Location>
+	</Document>
+	<Document>
+		<Name>ProjectRegister</Name>
+		<Location>C:\Users\ac00418\Documents\CVC\xml\ProjectRegister.xml</Location>
+	</Document>
+	<Document>
+		<Name>AssetLibrary</Name>
+		<Location>C:\Users\ac00418\Documents\CVC\xml\AssetLibrary.xml</Location>
+	</Document>
+</config>
