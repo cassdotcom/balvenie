@@ -32,15 +32,6 @@
         PowerShell Language
 #>
 
-$dataTable = Data {
-
-    ConvertFrom-StringData @'
-    ProjectsRoot=C:\\Users\\ac00418\\Documents\\CVC\\projects\\
-    ProjectRegister=C:\\Users\\ac00418\\Documents\\CVC\\xml\\ProjectRegister.xml
-    AssetLibrary=C:\\Users\\ac00418\\Documents\\CVC\\xml\\AssetLibrary.xml
-'@
-}
-
 function Create-Asset
 {
     [CmdletBinding()]
@@ -92,7 +83,7 @@ function Create-Asset
             }
         }
 
-        # Flag when duplicate hash found
+        # Flag when duplicate found
         $dupeFlag = $false
     }
 
@@ -115,12 +106,11 @@ function Create-Asset
             STOP DUPLICATES
         #>
         # Check if asset exists
-        Write-Verbose "Create-Asset`tCheck for pre-existing asset..."
+        Write-Verbose "Create-Asset`tCheck for existing asset..."
 
         # Get hash of asset
         Write-Verbose "Create-Asset`tGet hash of asset"
         $assetHash = (Get-FileHash $assetLocation -Algorithm SHA256).Hash
-
         foreach ( $n in $assetLibrary.AssetLibrary.Asset.GetEnumerator() ) {
             if ( $n.Hash -match $assetHash ) {
                 Write-Warning "Create-Asset`tAsset is already in repository"
@@ -160,7 +150,7 @@ function Create-Asset
 
 
         <#
-            CREATE REPOSITORY NODE
+            CREATE REPO NODE
         #>
 
         if ( $dupeFlag -eq $false ) {
