@@ -90,69 +90,64 @@ function Create-Asset
     Process{  
 
         # REPORTING
+        # ======================================================================================
         Write-Verbose "Create-Asset`tSTART FUNCTION @ $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
         Write-Verbose "Create-Asset`t------------------------------------------"
         Write-Verbose "Create-Asset`tCreate new asset in library"
         Write-Verbose "Create-Asset`tOpen asset library"
+        # ======================================================================================
 
 
 
+
+        # DUPLICATE SEARCH
+        # ======================================================================================
         # Open asset library
         [xml]$assetLibrary = Get-Content $config.AssetLibrary
 
-
-
-        <#
-            STOP DUPLICATES
-        #>
         # Check if asset exists
         Write-Verbose "Create-Asset`tCheck for existing asset..."
 
         # Get hash of asset
         Write-Verbose "Create-Asset`tGet hash of asset"
         $assetHash = (Get-FileHash $assetLocation -Algorithm SHA256).Hash
-        foreach ( $n in $assetLibrary.AssetLibrary.Asset.GetEnumerator() ) {
-            if ( $n.Hash -match $assetHash ) {
-                Write-Warning "Create-Asset`tAsset is already in repository"
-                Write-Warning "Create-Asset`tAsset is part of project $($n.Project)"
-                Write-Warning "Create-Asset`tUse PUSH to update function and PULL to source function"
-                $dupeFlag = $true
-                break
-            }
+
+        # Compare to hashes in library ...
+        if ( $assetLibrary.AssetLibrary.Asset | where { $_.CurrentHash -match $assetHash } ) {
+            $dupeFlag = $true
+            Write-Warning "Create-Asset`tAsset hash is already in repository"
+            Write-Warning "Create-Asset`tAsset is part of project $($n.Project)"
+            Write-Warning "Create-Asset`tUse PUSH to update function and PULL to source function"
+            break
         }
 
-        # Get name of asset
+        # ... Compare to names in Library ...
         Write-Verbose "Create-Asset`tCheck names"
-        foreach ( $n in $assetLibrary.AssetLibrary.Asset.GetEnumerator() ) {
-            if ( $n.Name -match $assetName ) {
-                Write-Warning "Create-Asset`tAsset name already exists"
-                Write-Warning "Create-Asset`tAsset is part of project $($n.Project)"
-                Write-Warning "Create-Asset`tUse PUSH to update function and PULL to source function"
-                $dupeFlag = $true
-                break
-            }
+        if ( $assetLibrary.AssetLibrary.Asset | where { $_.Name -match $assetName } ) {
+            Write-Warning "Create-Asset`tAsset name already exists"
+            Write-Warning "Create-Asset`tAsset is part of project $($n.Project)"
+            Write-Warning "Create-Asset`tUse PUSH to update function and PULL to source function"
+            $dupeFlag = $true
+            break
         }
 
-        # Check location of asset
+        # ... Compare to locations in Library.
         Write-Verbose "Create-Asset`tCheck location"
-        foreach ( $n in $assetLibrary.AssetLibrary.Asset.GetEnumerator() ) {
-            $strComparer = $n.Location.compareto($assetLocation)
-            if ( $strComparer -eq 0 ) {
-                Write-Warning "Create-Asset`tAsset location already exists"
-                Write-Warning "Create-Asset`tAsset is part of project $($n.Project)"
-                Write-Warning "Create-Asset`tUse PUSH to update function and PULL to source function"
-                $dupeFlag = $true
-                break
-            }
+        if ( $assetLibrary.AssetLibrary.Asset | where { $_.Rev.Location.compareTo($assetLocation) -eq 0 } ) {
+            Write-Warning "Create-Asset`tAsset location already exists"
+            Write-Warning "Create-Asset`tAsset is part of project $($n.Project)"
+            Write-Warning "Create-Asset`tUse PUSH to update function and PULL to source function"
+            $dupeFlag = $true
+            break
         }
+        # ======================================================================================
 
 
 
 
-        <#
-            CREATE REPO NODE
-        #>
 
+        # CREATE REPO NODE
+        # ======================================================================================
         if ( $dupeFlag -eq $false ) {
 
             # PROJECT REGISTER
@@ -244,6 +239,7 @@ function Create-Asset
             Write-Verbose "Create-Asset`tSave Library"
             $assetLibrary.Save($config.assetLibrary)
         }
+        # ======================================================================================
     }
 
     End{
