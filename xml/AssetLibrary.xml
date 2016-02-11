@@ -1,51 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AssetLibrary>
-  <Asset>
-    <Name>CVC_file</Name>
-    <Author>ACassidy</Author>
-    <CreationDate>20151215</CreationDate>
-    <CreationTime>1527</CreationTime>
-    <Comment>Dummy asset</Comment>
-    <Description>Dummy asset file</Description>
-    <Project>CVC</Project>
-    <Location>C:\Users\ac00418\Documents\CVC\xml\ProjectRegister.xml</Location>
-    <AID>CVC_20151215_ABC124_AC</AID>
-    <Hash>B96A8195926340E7768C262D80CBBFE2CD498DD0D261CE162895AE08D8C4F42B</Hash>
-  </Asset>
-  <Asset>
-    <Name>CVC_File2</Name>
-    <Author>ACassidy</Author>
-    <CreationDate>20160122</CreationDate>
-    <CreationTime>2100</CreationTime>
-    <Comment>Dummy asset 2</Comment>
-    <Description>Dummy asset file 2</Description>
-    <Project>CVC</Project>
-    <Location>C:\Users\ac00418\Documents\CVC\xml\ProjectRegister.xml.bak</Location>
-    <AID>CVC_20151215_ABC125_AC</AID>
-    <Hash>54BF647B3AB81E8AADC627C18CB089229658294324DCEEF59791E2EAA0F6CD97</Hash>
-  </Asset>
-  <Asset>
-    <Name>glengyle_file</Name>
-    <Author>ACassidy</Author>
-    <CreationDate>20160123</CreationDate>
-    <CreationTime>2127</CreationTime>
-    <Comment>Dummy glyl asset</Comment>
-    <Description>Dummy glyl file</Description>
-    <Project>Glengyle</Project>
-    <Location>C:\Users\ac00418\Documents\CVC\projects\Glengyle\blank_header.ps1</Location>
-    <AID>GLYL_20160123_GLY001_AC</AID>
-    <Hash>0EE34F16F50D266769092A104737FB4E1327C3A7C65B6CDF2B6783BB634E585D</Hash>
-  </Asset>
-  <Asset>
-    <Name>Query-DataBase</Name>
-    <Author>ACassidy</Author>
-    <CreationDate>20160202</CreationDate>
-    <CreationTime>202332</CreationTime>
-    <Comment>Use with mdb</Comment>
-    <Description>Queries databases and returns values</Description>
-    <Project>Glengyle</Project>
-    <Location>C:\Users\ac00418\Documents\glengyle\scripts\rev_iii\Query-DataBase.ps1</Location>
-    <AID>GLYL-0AYGEFVSW-36MPF-EYLPA-LTCZ3-AZRMQQTMM6HRK-00</AID>
-    <Hash>5A6C6464F08E9740567B35261DB81030E187F9FAE026C27C67D45C33750B5371</Hash>
-  </Asset>
+	<Asset AID="GLYL-0AYGEFVSW-36MPF-EYLPA-LTCZ3-AZRMQQTMM6HRK">
+		<Name>Query-DataBase</Name>
+		<Project>Glengyle</Project>
+		<Description>Queries databases and returns values</Description>
+		<Location>C:\Users\ac00418\Documents\glengyle\scripts\rev_iii\Query-DataBase.ps1</Location>
+		<CurrentRev>00</CurrentRev>
+	</Asset>
+	<Asset AID="FULI-OUL0EJFTE-FELOB-J08OO-VFVQFU6S3">
+		<Name>Send-OutlookMessage</Name>
+		<Project>FunctionLibrary</Project>
+		<Description>Sends message using Outlook</Description>
+		<Location>C:\Users\ac00418\Documents\WindowsPowerShell\FunctionLibrary\FunctionScripts\Send-OutlookMessage.ps1</Location>
+		<CurrentRev>00</CurrentRev>
+	</Asset>
 </AssetLibrary>
