@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AssetRegister>
+	<Asset AID="GLYL-0AYGEFVSW-36MPF-EYLPA-LTCZ3-AZRMQQTMM6HRK">
+		<Current>
+			<Rev>00</Rev>
+			<Hash>5A6C6464F08E9740567B35261DB81030E187F9FAE026C27C67D45C33750B5371</Hash>
+		</Current>
+	</Asset>
+	<Asset AID="FULI-OUL0EJFTE-FELOB-J08OO-VFVQFU6S3">
+		<Current>
+			<Rev>00</Rev>
+			<Hash>E4319B309E0E9B5127A691DD8F2240AE3ED6597EC29C0594D42F2755235A5175</Hash>
+		</Current>
+	</Asset>
+</AssetRegister>
