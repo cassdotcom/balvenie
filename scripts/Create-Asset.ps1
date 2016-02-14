@@ -60,186 +60,170 @@ function Create-Asset
         [Parameter(Mandatory=$true)]
         [System.String]
         $assetLocation
-        )
-    DynamicParam{
-        # Configuration data
-        $config = CVC-Config -configType Documents
+    )
+
+
+    Begin
+    {
+
+        # REPORTING
+        # ======================================================================================
+        Write-Verbose "Create-Asset`tSTART CREATE-ASSET @ $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+        Write-Verbose "Create-Asset`t------------------------------------------"
+        Write-Verbose "Create-Asset`tCreate new asset"
+        # ======================================================================================
         
-        # New-DynamicParam -name Project -ValidateSet $(([xml](gc $dataTable.ProjectRegister)).GetElementsByTagName("Project").Name) -Mandatory
-        New-DynamicParam -name Project -ValidateSet $(([xml](gc $config.ProjectRegister)).GetElementsByTagName("Project").Name) -Mandatory
-
-    }
-
-    Begin{
         # Configuration data
         $config = CVC-Config -configType Documents
-
-        # Dynamic parameters
-        foreach ($param in $PSBoundParameters.Keys)
-        {
-            if (-not (Get-Variable -Name $param -Scope 0 -ErrorAction SilentlyContinue))
-            {
-                New-Variable -Name $param -Value $PSBoundParameters.$param
-            }
-        }
 
         # Flag when duplicate found
         $dupeFlag = $false
     }
 
-    Process{  
-
-        # REPORTING
+    Process
+    {
+        # FIND DUPLICATES
         # ======================================================================================
-        Write-Verbose "Create-Asset`tSTART FUNCTION @ $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-        Write-Verbose "Create-Asset`t------------------------------------------"
-        Write-Verbose "Create-Asset`tCreate new asset in library"
-        Write-Verbose "Create-Asset`tOpen asset library"
-        # ======================================================================================
+        Write-Verbose "Create-Asset`tCheck for existing asset..."
+        Write-Verbose "Create-Asset`tGet hash of asset"
+        $assetHash = (Get-FileHash -Path $assetLocation -Algorithm SHA256).Hash
 
-
-
-
-        # DUPLICATE SEARCH
-        # ======================================================================================
         # Open asset library
         [xml]$assetLibrary = Get-Content $config.AssetLibrary
 
-        # Check if asset exists
-        Write-Verbose "Create-Asset`tCheck for existing asset..."
-
-        # Get hash of asset
-        Write-Verbose "Create-Asset`tGet hash of asset"
-        $assetHash = (Get-FileHash $assetLocation -Algorithm SHA256).Hash
-
-        # Compare to hashes in library ...
-        if ( $assetLibrary.AssetLibrary.Asset | where { $_.CurrentHash -match $assetHash } ) {
+        # Compare against existing hashes
+        if ( $assetLibrary.AssetLibrary.Asset | where { $_.Rev.hash -match $assetHash } ) {
             $dupeFlag = $true
             Write-Warning "Create-Asset`tAsset hash is already in repository"
-            Write-Warning "Create-Asset`tAsset is part of project $($n.Project)"
             Write-Warning "Create-Asset`tUse PUSH to update function and PULL to source function"
-            break
-        }
-
-        # ... Compare to names in Library ...
-        Write-Verbose "Create-Asset`tCheck names"
-        if ( $assetLibrary.AssetLibrary.Asset | where { $_.Name -match $assetName } ) {
-            Write-Warning "Create-Asset`tAsset name already exists"
-            Write-Warning "Create-Asset`tAsset is part of project $($n.Project)"
-            Write-Warning "Create-Asset`tUse PUSH to update function and PULL to source function"
-            $dupeFlag = $true
-            break
-        }
-
-        # ... Compare to locations in Library.
-        Write-Verbose "Create-Asset`tCheck location"
-        if ( $assetLibrary.AssetLibrary.Asset | where { $_.Rev.Location.compareTo($assetLocation) -eq 0 } ) {
-            Write-Warning "Create-Asset`tAsset location already exists"
-            Write-Warning "Create-Asset`tAsset is part of project $($n.Project)"
-            Write-Warning "Create-Asset`tUse PUSH to update function and PULL to source function"
-            $dupeFlag = $true
             break
         }
         # ======================================================================================
+        
 
+        if ( !$dupeFlag ) {
 
-
-
-
-        # CREATE REPO NODE
-        # ======================================================================================
-        if ( $dupeFlag -eq $false ) {
-
-            # PROJECT REGISTER
-            # Get project from register
-            Write-Verbose "Create-Asset`tOpen project register"
-            [xml]$projectRegister = gc $config.ProjectRegister
-            $assetProj = ( $projectRegister.ProjectRegister.Project | where { $_.Name -match $Project } )
-
-            # Get project code
-            Write-Verbose "Create-Asset`tGet project code"
-            $projCode = $assetProj.PID.Substring(0,4)
-            # Create Asset ID
-            $assetID = Create-AssetID -projCode $projCode
-            
-
-            # Get project root and create file name
-            $newAssetLocation = $assetProj.Location + "\" + $assetID + ".cvc"
-
-            # Copy asset to folder
-            Write-Verbose "Create-Asset`tCopy asset to project folder"
-            $cvcCopy =  Copy-Item -Path $assetLocation -Destination $newAssetLocation
-            
-            # Update asset count
-            Write-Verbose "Create-Asset`tUpdate asset count"
-            [System.Int32]$newAssetCount = ($assetProj.AssetCount)
-            $assetProj.AssetCount = [System.String]($newAssetCount + 1)
-
+        
+            # CREATE ENTRY IN REGISTER
+            # ======================================================================================
+            # New asset ID
+            Write-Verbose "Create-Asset`tNew ID...."
+            $assetAID = Create-AssetID
+            Write-Verbose "Create-Asset`t.... $($assetAID)"
 
             
-
-
-            # Create new node in xml
-            $newAsset = $assetLibrary.AssetLibrary.AppendChild($assetLibrary.CreateElement("Asset"))
-
-            # Name
-            Write-Verbose "Create-Asset`t`t... Name ..."
-            $newName = $newAsset.AppendChild($assetLibrary.CreateElement("Name"))
-            $newNameText = $newName.AppendChild($assetLibrary.CreateTextNode($assetName))
-            # Author
-            Write-Verbose "Create-Asset`t`t... Author ..."
-            $newAuthor = $newAsset.AppendChild($assetLibrary.CreateElement("Author"))
-            $newAuthorText = $newAuthor.AppendChild($assetLibrary.CreateTextNode($assetAuthor))
-            # Creation date
-            Write-Verbose "Create-Asset`t`t... Creation date ..."
-            $assetDate = Get-Date -Format yyyyMMdd
-            $newDate = $newAsset.AppendChild($assetLibrary.CreateElement("CreationDate"))
-            $newDateText = $newDate.AppendChild($assetLibrary.CreateTextNode($assetDate))
-            # Creation Time
-            Write-Verbose "Create-Asset`t`t... Creation time ..."
-            $assetTime = Get-Date -Format HHmmss
-            $newTime = $newAsset.AppendChild($assetLibrary.CreateElement("CreationTime"))
-            $newTimeText = $newTime.AppendChild($assetLibrary.CreateTextNode($assetTime))
-            # Comment
-            Write-Verbose "Create-Asset`t`t... Comment ..."
-            $newComment = $newAsset.AppendChild($assetLibrary.CreateElement("Comment"))
-            $newCommentText = $newComment.AppendChild($assetLibrary.CreateTextNode($assetComment))
-            # Description
-            Write-Verbose "Create-Asset`t`t... Description ..."
-            $newDescription = $newAsset.AppendChild($assetLibrary.CreateElement("Description"))
-            $newDescriptionText = $newDescription.AppendChild($assetLibrary.CreateTextNode($assetDescription))
-            # Project
-            Write-Verbose "Create-Asset`t`t... Project ..."
-            $newProject = $newAsset.AppendChild($assetLibrary.CreateElement("Project"))
-            $newProjectText = $newProject.AppendChild($assetLibrary.CreateTextNode($Project))
-            # Location
-            Write-Verbose "Create-Asset`t`t... Location ..."
-            $newLocation = $newAsset.AppendChild($assetLibrary.CreateElement("Location"))
-            $newLocationText = $newLocation.AppendChild($assetLibrary.CreateTextNode($assetLocation))
-            # AID
-            Write-Verbose "Create-Asset`t`t... AID ..."
-            $newAID = $newAsset.AppendChild($assetLibrary.CreateElement("AID"))
-            $newPIDText = $newAID.AppendChild($assetLibrary.CreateTextNode($assetID))
-            # Asset hash
-            Write-Verbose "Create-Asset`t`t... Hash ..."
-            $assetHash = Get-FileHash -Path $assetLocation
-            $newHash = $newAsset.AppendChild($assetLibrary.CreateElement("Hash"))
-            $newHashText = $newHash.AppendChild($assetLibrary.CreateTextNode($assetHash.Hash))
-
+            Write-Verbose "Create-Asset`tWrite to asset register"
+            CVC-WriteToAssetRegister -file $config.AssetRegister
 
             <#
-                SAVE XML FILES
+            # Open register
+            [xml]$assetRegister = Get-Content $config.AssetRegister
+
+            # New node
+            $newAsset = $assetRegister.AssetRegister.AppendChild($assetRegister.CreateElement("Asset"))
+            # Node name
+            $newName = $newAsset.AppendChild($assetRegister.CreateElement("Name"))
+            $newNameText = $newName.AppendChild($assetRegister.CreateTextNode($assetName))
+            # Node AID
+            $newAID = $newAsset.AppendChild($assetRegister.CreateElement("AID"))
+            $newAIDText = $newAID.AppendChild($assetRegister.CreateTextNode($assetAID))
+            # Save xml
+            $assetRegister.Save($config.AssetRegister)
             #>
+            # ======================================================================================
 
-            # Save register
-            Write-Verbose "Create-Asset`tSave Register"
-            $projectRegister.Save($config.ProjectRegister)
 
-            # Save register
-            Write-Verbose "Create-Asset`tSave Library"
-            $assetLibrary.Save($config.assetLibrary)
+            
+
+
+            # COPY ASSET TO REPO
+            # ======================================================================================
+            Write-Verbose "Create-Asset`tCopy asset to repository .... "
+            $assetNewLocation = "C:\Users\ac00418\Documents\CVC\repo\" + $assetAID + "-00.revc"
+            $assetCopy = Copy-Item -Path $assetLocation -Destination $assetNewLocation
+            Write-Verbose "Create-Asset`t.... $($assetNewLocation)"
+            # ======================================================================================
+
+
+
+
+
+            # CREATE ENTRY IN LIBRARY
+            # ======================================================================================
+            Write-Verbose "Create-Asset`tWrite to hash library"
+            CVC-WriteToAssetLibrary -file $config.AssetLibrary -assetHash $assetHash -assetAID $assetAID
+
+            <#
+            [xml]$assetLibrary = Get-Content $config.AssetLibrary
+
+            # New node
+            $newAsset = $assetLibrary.AssetLibrary.AppendChild($assetLibrary.CreateElement("Asset"))
+            # Node AID
+            $newAID = $newAsset.AppendChild($AssetLibrary.CreateElement("AID"))
+            $newAIDText = $newAID.AppendChild($AssetLibrary.CreateTextNode($assetAID))
+            # Node Rev
+            $newRevision = $newAsset.AppendChild($assetLibrary.CreateElement("Rev"))
+            $newRev = $newRevision.AppendChild($assetLibrary.CreateElement("rev"))
+            $newRevText = $newRev.AppendChild($assetLibrary.CreateTextNode("00"))
+            # Node Hash
+            $newHash = $newRev.AppendChild($assetLibrary.CreateElement("hash"))
+            $newHashText = $newHash.AppendChild($assetLibrary.CreateTextNode($assetHash))
+            # Save xml
+            $assetLibrary.Save($config.AssetLibrary)
+            #>
+            # ======================================================================================
+
+
+        
+            # CREATE CONTROL FILE
+            # ======================================================================================
+            # New file
+            Write-Verbose "Create-Asset`tCreate asset control file ...."
+            $assetPath = "C:\Users\ac00418\Documents\CVC\repo\" + $assetAID + ".cvc"
+            $newAssetItem = New-Item -Path $assetPath -ItemType File
+            Write-Verbose "Create-Asset`t.... $($assetPath)"
+
+            CVC-WriteToAssetControl -xmlFile $assetPath -assetAuthor $assetAuthor -assetHash $assetHash -assetLocation $assetLocation -assetComment $assetComment
+
+            <#
+            # Begin xml
+            $XMLWriter = New-Object System.Xml.XmlTextWriter($assetPath,$null)
+            $XMLWriter.Formatting = "Indented"
+            $XMLWriter.Indentation = "4"
+            $XMLWriter.WriteStartDocument()
+            $XMLWriter.WriteStartElement("AssetRevision")
+            $XMLWriter.WriteStartElement("Rev")
+            # Write revision number
+            $XMLWriter.WriteAttributeString("rev","00")
+            # Write author
+            $XMLWriter.WriteElementString("Author",$assetAuthor)
+            # Write creation date
+            $assetDate = Get-Date -Format yyyyMMdd
+            $XMLWriter.WriteElementString("CreationDate",$assetDate)
+            # Write creation time
+            $assetTime = Get-Date -Format HHmmss
+            $XMLWriter.WriteElementString("CreationTime",$assetTime)
+            # Write asset hash
+            $XMLWriter.WriteElementString("Hash",$assetHash)
+            # Write asset location
+            $XMLWriter.WriteElementString("Location",$assetLocation)
+            # Write asset comment
+            $XMLWriter.WriteElementString("Comment",$assetComment)
+
+            # Close 'Rev'
+            $XMLWriter.WriteEndElement()
+            # Close 'AssetRevision'
+            $XMLWriter.WriteEndElement()
+            # End document
+            $XMLWriter.WriteEndDocument()
+            $XMLWriter.Finalize
+            $XMLWriter.Flush()
+            # close xml
+            $XMLWriter.Close()
+            #>
+            # ======================================================================================
         }
-        # ======================================================================================
+        
     }
 
     End{
@@ -247,4 +231,145 @@ function Create-Asset
         Write-Verbose "Create-Asset`tEND OF FUNCTION @ $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
     }
 
-}#endFunction Create-Asset
+
+}
+
+
+
+
+function CVC-WriteToAssetRegister
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter()]
+        [System.String]
+        $file,
+        
+        [Parameter()]
+        [System.String]
+        $assetName,
+        
+        [Parameter()]
+        [System.String]
+        $assetAID
+    )
+
+
+    # Open register
+    [xml]$xmlFile = Get-Content $file
+
+    # New node
+    $newAsset = $xmlFile.AssetRegister.AppendChild($xmlFile.CreateElement("Asset"))
+    # Node name
+    $newName = $newAsset.AppendChild($xmlFile.CreateElement("Name"))
+    $newNameText = $newName.AppendChild($xmlFile.CreateTextNode($assetName))
+    # Node AID
+    $newAID = $newAsset.AppendChild($xmlFile.CreateElement("AID"))
+    $newAIDText = $newAID.AppendChild($xmlFile.CreateTextNode($assetAID))
+    # Save xml
+    $xmlFile.Save($file)
+
+}
+
+function CVC-WriteToAssetLibrary
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter()]
+        [System.String]
+        $file,
+        
+        [Parameter()]
+        [System.String]
+        $assetHash,
+        
+        [Parameter()]
+        [System.String]
+        $assetAID
+    )
+
+
+    # Open library
+    [xml]$xmlFile = Get-Content $file
+
+    # New node
+    $newAsset = $xmlFile.AssetLibrary.AppendChild($xmlFile.CreateElement("Asset"))
+    # Node AID
+    $newAID = $newAsset.AppendChild($xmlFile.CreateElement("AID"))
+    $newAIDText = $newAID.AppendChild($xmlFile.CreateTextNode($assetAID))
+    # Node Rev
+    $newRevision = $newAsset.AppendChild($xmlFile.CreateElement("Rev"))
+    $newRev = $newRevision.AppendChild($xmlFile.CreateElement("rev"))
+    $newRevText = $newRev.AppendChild($xmlFile.CreateTextNode("00"))
+    # Node Hash
+    $newHash = $newRev.AppendChild($xmlFile.CreateElement("hash"))
+    $newHashText = $newHash.AppendChild($xmlFile.CreateTextNode($assetHash))
+    # Save xml
+    $xmlFile.Save($file)
+
+
+}
+
+function CVC-WriteToAssetControl
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter()]
+        [System.String]
+        $xmlFile,
+        
+        [Parameter()]
+        [System.String]
+        $assetAuthor,
+        
+        [Parameter()]
+        [System.String]
+        $assetHash,
+        
+        [Parameter()]
+        [System.String]
+        $assetLocation,
+        
+        [Parameter()]
+        [System.String]
+        $assetComment
+    )
+
+
+    # Begin xml
+    $XMLWriter = New-Object System.Xml.XmlTextWriter($xmlFile,$null)
+    $XMLWriter.Formatting = "Indented"
+    $XMLWriter.Indentation = "4"
+    $XMLWriter.WriteStartDocument()
+    $XMLWriter.WriteStartElement("AssetRevision")
+    $XMLWriter.WriteStartElement("Rev")
+    # Write revision number
+    $XMLWriter.WriteAttributeString("rev","00")
+    # Write author
+    $XMLWriter.WriteElementString("Author",$assetAuthor)
+    # Write creation date
+    $assetDate = Get-Date -Format yyyyMMdd
+    $XMLWriter.WriteElementString("CreationDate",$assetDate)
+    # Write creation time
+    $assetTime = Get-Date -Format HHmmss
+    $XMLWriter.WriteElementString("CreationTime",$assetTime)
+    # Write asset hash
+    $XMLWriter.WriteElementString("Hash",$assetHash)
+    # Write asset location
+    $XMLWriter.WriteElementString("Location",$assetLocation)
+    # Write asset comment
+    $XMLWriter.WriteElementString("Comment",$assetComment)
+
+    # Close 'Rev'
+    $XMLWriter.WriteEndElement()
+    # Close 'AssetRevision'
+    $XMLWriter.WriteEndElement()
+    # End document
+    $XMLWriter.WriteEndDocument()
+    $XMLWriter.Finalize
+    $XMLWriter.Flush()
+    # close xml
+    $XMLWriter.Close()
+
+
+}
