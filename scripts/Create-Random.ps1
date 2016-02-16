@@ -10,7 +10,7 @@ function Create-Random
 
     $res = $set | Get-Random
 
-    while ( $n -le $wordLength ) {
+    while ( $n -lt $wordLength ) {
         $res += $set | Get-Random
         $n++
     }
