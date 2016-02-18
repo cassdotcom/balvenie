@@ -113,7 +113,7 @@ function Create-Asset
 
             
             Write-Verbose "Create-Asset`tWrite to asset register"
-            CVC-WriteToAssetRegister -file $config.AssetRegister
+            CVC-WriteToAssetRegister -file $config.AssetRegister -assetName $assetName -assetAID $assetAID
 
             <#
             # Open register
@@ -151,7 +151,7 @@ function Create-Asset
             # CREATE ENTRY IN LIBRARY
             # ======================================================================================
             Write-Verbose "Create-Asset`tWrite to hash library"
-            CVC-WriteToAssetLibrary -file $config.AssetLibrary -assetHash $assetHash -assetAID $assetAID
+            CVC-WriteToAssetLibrary -file $config.AssetLibrary -assetHash $assetHash -assetAID $assetAID -assetRev "00"
 
             <#
             [xml]$assetLibrary = Get-Content $config.AssetLibrary
@@ -183,7 +183,7 @@ function Create-Asset
             $newAssetItem = New-Item -Path $assetPath -ItemType File
             Write-Verbose "Create-Asset`t.... $($assetPath)"
 
-            CVC-WriteToAssetControl -xmlFile $assetPath -assetAuthor $assetAuthor -assetHash $assetHash -assetLocation $assetLocation -assetComment $assetComment
+            CVC-WriteToAssetControl -xmlFile $assetPath -assetAuthor $assetAuthor -assetHash $assetHash -assetLocation $assetLocation -assetComment $assetComment -assetDescription $assetDescription
 
             <#
             # Begin xml
@@ -266,6 +266,9 @@ function CVC-WriteToAssetRegister
     # Node AID
     $newAID = $newAsset.AppendChild($xmlFile.CreateElement("AID"))
     $newAIDText = $newAID.AppendChild($xmlFile.CreateTextNode($assetAID))
+    # Current revision
+    $newRev = $newAsset.AppendChild($xmlFile.CreateElement("CurrentRev"))
+    $newRevText = $newRev.AppendChild($xmlFile.CreateTextNode("00"))
     # Save xml
     $xmlFile.Save($file)
 
@@ -285,7 +288,11 @@ function CVC-WriteToAssetLibrary
         
         [Parameter()]
         [System.String]
-        $assetAID
+        $assetAID,
+        
+        [Parameter()]
+        [System.String]
+        $assetRev
     )
 
 
@@ -300,9 +307,9 @@ function CVC-WriteToAssetLibrary
     # Node Rev
     $newRevision = $newAsset.AppendChild($xmlFile.CreateElement("Rev"))
     $newRev = $newRevision.AppendChild($xmlFile.CreateElement("rev"))
-    $newRevText = $newRev.AppendChild($xmlFile.CreateTextNode("00"))
+    $newRevText = $newRev.AppendChild($xmlFile.CreateTextNode($assetRev))
     # Node Hash
-    $newHash = $newRev.AppendChild($xmlFile.CreateElement("hash"))
+    $newHash = $newRevision.AppendChild($xmlFile.CreateElement("hash"))
     $newHashText = $newHash.AppendChild($xmlFile.CreateTextNode($assetHash))
     # Save xml
     $xmlFile.Save($file)
@@ -332,7 +339,11 @@ function CVC-WriteToAssetControl
         
         [Parameter()]
         [System.String]
-        $assetComment
+        $assetComment,
+        
+        [Parameter()]
+        [System.String]
+        $assetDescription
     )
 
 
@@ -342,9 +353,16 @@ function CVC-WriteToAssetControl
     $XMLWriter.Indentation = "4"
     $XMLWriter.WriteStartDocument()
     $XMLWriter.WriteStartElement("AssetRevision")
+
+    # Write asset details
+    $XMLWriter.WriteStartElement("AssetDetails")
+    $XMLWriter.WriteElementString("Description",$assetDescription)
+    $XMLWriter.WriteEndElement()
+
+    # Write revision details
     $XMLWriter.WriteStartElement("Rev")
     # Write revision number
-    $XMLWriter.WriteAttributeString("rev","00")
+    $XMLWriter.WriteElementString("rev","00")
     # Write author
     $XMLWriter.WriteElementString("Author",$assetAuthor)
     # Write creation date
